@@ -62,57 +62,40 @@ python setup_data.py --top 1000   # usar las 1000 ubicaciones más peligrosas (d
 python setup_data.py --csv otro_archivo.csv
 ```
 
-### Paso 2 — Calcular una ruta
-
-```bash
-python main.py --from "Calle 72 Carrera 46, Barranquilla" --to "Calle 93 Carrera 53, Barranquilla"
-```
-
-El programa imprime en consola la comparación de rutas y abre automáticamente el mapa en el navegador.
-
-**Sin argumentos** se ejecuta la ruta de demostración predefinida (Calle 72/Cr 46 → Calle 110/Cr 9G):
+### Paso 2 — Iniciar el servidor
 
 ```bash
 python main.py
 ```
 
-Opciones adicionales:
+El programa carga el grafo, genera el mapa interactivo y abre el navegador automáticamente en `http://localhost:8765`.
+
+> Si el puerto 8765 está ocupado (por ejemplo, por un proceso anterior), el servidor busca automáticamente un puerto disponible en el rango 8765–8774.
+
+Opciones:
 
 | Argumento | Descripción | Default |
 |-----------|-------------|---------|
-| `--from` | Dirección de origen | demo |
-| `--to` | Dirección de destino | demo |
+| `--port` | Puerto de inicio | `8765` |
 | `--lambda` | Factor de penalización por accidentes (mayor = más seguro, más largo) | `150` |
-| `--output` | Ruta del archivo HTML generado | `output/mapa_rutas.html` |
 
-### Ejemplo de salida en consola
+### Cómo usar el mapa
 
-```
-  RUTA MÁS CORTA
-    Distancia  : 8.38 km
-    Accidentes : 407
-    Severidad  : 866.0
-
-  RUTA MÁS SEGURA
-    Distancia  : 9.35 km
-    Accidentes : 92
-    Severidad  : 181.0
-
-  COMPARACIÓN
-    Distancia extra     : +0.96 km
-    Accidentes evitados : 315
-    Reducción de riesgo : 79.1%
-```
+1. **Haz click** en el mapa para elegir el **origen** (marcador verde).
+2. **Haz click** nuevamente para elegir el **destino** (marcador rojo).
+3. Presiona **"Calcular Ruta"** — el sistema corre Dijkstra en ambas variantes y dibuja las rutas.
+4. El panel lateral muestra la comparativa: distancia, accidentes y reducción de riesgo.
+5. Usa **"Limpiar"** para seleccionar un nuevo origen y destino.
 
 ### Mapa interactivo
 
-El mapa HTML generado incluye capas activables/desactivables:
+El mapa incluye capas activables/desactivables:
 
 - 🔴 **Puntos de accidentalidad** — círculos cuyo tamaño y color indican la cantidad y gravedad de accidentes en cada intersección
 - 🌡️ **Mapa de calor** — visualización continua de la densidad de accidentes
 - 🔵 **Ruta más corta** — trazada en azul
 - 🟢 **Ruta más segura** — trazada en verde
-- 📊 **Leyenda** — comparativa de distancia, accidentes y reducción de riesgo
+- 📊 **Panel lateral** — comparativa de distancia, accidentes y reducción de riesgo
 
 ## Estructura del proyecto
 
@@ -124,8 +107,9 @@ fast-maps/
 │   ├── street_matcher.py  Mapea direcciones a nodos del grafo por nombre de calle
 │   ├── graph.py           Descarga la red vial y superpone accidentes
 │   ├── routing.py         Algoritmo de Dijkstra (distancia y seguridad)
+│   ├── interactive.py     Mapa interactivo con selección por click y API /api/route
 │   ├── geocoder.py        Geocodifica origen/destino del usuario (Nominatim)
-│   └── visualizer.py      Genera el mapa HTML interactivo con Folium
+│   └── visualizer.py      Generador de mapa estático HTML con Folium
 ├── cache/                 Grafo y datos en caché (generado automáticamente)
 ├── output/                Mapas HTML generados
 ├── setup_data.py          Script de preparación (ejecutar una vez)

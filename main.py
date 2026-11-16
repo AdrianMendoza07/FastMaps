@@ -10,8 +10,8 @@ Uso:
 import argparse
 import http.server
 import json
+import socket
 import sys
-import threading
 import webbrowser
 from pathlib import Path
 
@@ -114,9 +114,20 @@ def _make_handler(G, lambda_safety: float):
     return _Handler
 
 
+def _find_free_port(start: int = 8765) -> int:
+    for port in range(start, start + 10):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(('localhost', port))
+                return port
+            except OSError:
+                continue
+    raise RuntimeError(f'No hay puerto disponible entre {start} y {start + 9}')
+
+
 def main():
     parser = argparse.ArgumentParser(description='Fast-Maps — servidor de enrutamiento seguro')
-    parser.add_argument('--port',   type=int,   default=8765, help='Puerto HTTP (default: 8765)')
+    parser.add_argument('--port',   type=int,   default=8765, help='Puerto de inicio (default: 8765)')
     parser.add_argument('--lambda', dest='lam', type=float, default=150.0,
                         help='Factor de penalización por accidentes (default: 150)')
     args = parser.parse_args()
@@ -124,9 +135,10 @@ def main():
     G = _build_graph(args.lam)
 
     Handler = _make_handler(G, args.lam)
-    httpd = http.server.HTTPServer(('localhost', args.port), Handler)
+    port = _find_free_port(args.port)
+    httpd = http.server.HTTPServer(('localhost', port), Handler)
 
-    url = f'http://localhost:{args.port}'
+    url = f'http://localhost:{port}'
     print(f'\n[main] Servidor corriendo en {url}')
     print('[main] Presiona Ctrl+C para detenerlo\n')
     webbrowser.open(url)
